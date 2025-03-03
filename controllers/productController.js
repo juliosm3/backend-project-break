@@ -1,11 +1,12 @@
 const Product = require('../models/product');
 
-function getNavBar() {
+function getNavBar(user) {
     return `
         <nav>
             <a href="/">Inicio</a>
             <a href="/products">Catálogo</a>
             <a href="/dashboard">Dashboard</a>
+            ${user ? '<a href="/auth/logout">Cerrar Sesión</a>' : '<a href="/auth/login">Iniciar Sesión</a>'}
         </nav>
     `;
 }
@@ -31,7 +32,7 @@ const showProducts = async (req, res) => {
                     <link rel="stylesheet" href="/styles.css">
                 </head>
                 <body>
-                    ${getNavBar()}
+                    ${getNavBar(req.session.user)}
                     <div class="container">
                         <h1>Catálogo de Productos</h1>
                         ${getProductCards(products)}
@@ -54,7 +55,7 @@ const showProductById = async (req, res) => {
                     <link rel="stylesheet" href="/styles.css">
                 </head>
                 <body>
-                    ${getNavBar()}
+                    ${getNavBar(req.session.user)}
                     <div class="container">
                         <h1>${product.name}</h1>
                         <img src="${product.image}" alt="${product.name}" style="width:300px;">
@@ -101,68 +102,10 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-const showNewProductForm = (req, res) => {
-    res.send(`
-        <html>
-            <head>
-                <link rel="stylesheet" href="/styles.css">
-            </head>
-            <body>
-                ${getNavBar()}
-                <div class="container">
-                    <h1>Nuevo Producto</h1>
-                    <form action="/dashboard" method="POST">
-                        <input type="text" name="name" placeholder="Nombre" required>
-                        <input type="text" name="description" placeholder="Descripción" required>
-                        <input type="text" name="image" placeholder="URL de la imagen" required>
-                        <input type="text" name="category" placeholder="Categoría" required>
-                        <input type="text" name="size" placeholder="Tamaño" required>
-                        <input type="number" name="price" placeholder="Precio" required>
-                        <button type="submit">Crear Producto</button>
-                    </form>
-                </div>
-            </body>
-        </html>
-    `);
-};
-
-const showEditProductForm = async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.productId);
-        if (!product) return res.status(404).send('<h1>Producto no encontrado</h1>');
-        res.send(`
-            <html>
-                <head>
-                    <link rel="stylesheet" href="/styles.css">
-                </head>
-                <body>
-                    ${getNavBar()}
-                    <div class="container">
-                        <h1>Editar Producto</h1>
-                        <form action="/dashboard/${product._id}?_method=PUT" method="POST">
-                            <input type="text" name="name" value="${product.name}" required>
-                            <input type="text" name="description" value="${product.description}" required>
-                            <input type="text" name="image" value="${product.image}" required>
-                            <input type="text" name="category" value="${product.category}" required>
-                            <input type="text" name="size" value="${product.size}" required>
-                            <input type="number" name="price" value="${product.price}" required>
-                            <button type="submit">Actualizar Producto</button>
-                        </form>
-                    </div>
-                </body>
-            </html>
-        `);
-    } catch (error) {
-        res.status(500).send('<h1>Error al obtener el producto para editar</h1>');
-    }
-};
-
 module.exports = { 
     showProducts, 
     showProductById, 
     createProduct, 
     updateProduct, 
-    deleteProduct, 
-    showNewProductForm,
-    showEditProductForm
+    deleteProduct
 };

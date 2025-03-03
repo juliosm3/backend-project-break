@@ -1,13 +1,12 @@
 const admin = require("firebase-admin");
-const dotenv = require("dotenv");
-const path = require("path");
-
-dotenv.config();
-
-const serviceAccount = require(path.join(__dirname, "..", process.env.FIREBASE_CREDENTIALS));
+const { getAuth } = require("firebase-admin/auth");
+const serviceAccount = require("../config/firebaseServiceAccount.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-module.exports = admin;
+const auth = getAuth();
+
+module.exports = { admin, auth };
+

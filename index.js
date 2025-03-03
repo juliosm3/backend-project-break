@@ -4,14 +4,18 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const path = require('path');
+const methodOverride = require('method-override');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const authMiddleware = require('./middlewares/authMiddleware');
+const setupSwagger = require('./config/swagger');
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static('public/images'));
 
 mongoose.connect(process.env.MONGO_URI, { 
   useNewUrlParser: true, 
@@ -23,7 +27,7 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 app.use(session({
-  secret: 'secretoSeguro',
+  secret: process.env.SESSION_SECRET || 'secretoSeguro',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
@@ -32,6 +36,7 @@ app.use(session({
 
 app.use('/products', productRoutes);
 app.use('/auth', authRoutes);
+setupSwagger(app);
 
 app.get('/', (req, res) => {
   res.send(`
@@ -63,3 +68,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = app;
+

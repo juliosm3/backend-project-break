@@ -14,11 +14,11 @@ const showLoginForm = (req, res) => {
 const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await firebase.auth().signInWithEmailAndPassword(email, password);
-        req.session.user = user;
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        req.session.user = { uid: userCredential.user.uid, email: userCredential.user.email };
         res.redirect('/dashboard');
     } catch (error) {
-        res.status(401).send('Error de autenticación.');
+        res.status(401).send('<h1>Error de autenticación. Verifica tus credenciales.</h1>');
     }
 };
 
